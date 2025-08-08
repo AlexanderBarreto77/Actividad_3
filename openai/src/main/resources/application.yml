@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: my-application
+  ai:
+    openai:
+      api-key: sk-proj-seUSwohRL36KP1Pm_oBgPtn4UC0Yg4De0BHxMhnNUaX-vfcm9Veh2MD-ZO5hst1oJaascmV77xT3BlbkFJ4_66OV_KwS6hRQojpOT782Y_YrYfPIgNffdxOrdiD8wKgcviXQTeoG6y3TcB6WfQ1n2dIm #
+      model: "gpt-4" # modelo de OpenAI a utilizar
+      endpoint: "https://api.openai.com/v1/chat/completions" # endpoint de OpenAI para chat completions
+      temperature: 0.7 # nivel de creatividad de las respuestas generadas por el modelo
+      max-tokens: 50 # n�mero m�ximo de tokens en la respuesta generada por el modelo

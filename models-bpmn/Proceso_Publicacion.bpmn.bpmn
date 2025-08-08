@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_Publicacion" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.37.0">
+  <bpmn:process id="Proceso_Publicacion" name="Proceso de Publicación" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Editor" name="Editor" />
+      <bpmn:lane id="Lane_Revisor" name="Revisor" />
+      <bpmn:lane id="Lane_Servicios" name="Servicios Externos" />
+      <bpmn:lane id="Lane_Autor" name="Autor">
+        <bpmn:flowNodeRef>Task_Edicion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EnviarRevision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AsignarRevisores</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Revision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AprobacionEditorial</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Publicar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Notificar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ActualizarContenido</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>StartEvent_Publicacion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_PublicationSubmitted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_PublicationPublished</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Decision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Rechazado</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Publicado</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_ReviewRequested</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Publicacion" name="Inicio: Crear borrador">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Edicion" name="Añadir contenido, metadatos y adjuntos">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_EnviarRevision" name="Enviar a revisión">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="Event_PublicationSubmitted" name="publication.submitted">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:messageEventDefinition />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:userTask id="Task_AsignarRevisores" name="Asignar revisores">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="Event_ReviewRequested" name="publication.review.requested">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:messageEventDefinition />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:userTask id="Task_Revision" name="Revisión y comentarios">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_Decision" name="Decisión del revisor">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_Aceptar</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SolicitarCambios</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Rechazar</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_AprobacionEditorial" name="Aprobación editorial">
+      <bpmn:incoming>Flow_Aceptar</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ActualizarContenido" name="Actualizar contenido y reenviar">
+      <bpmn:incoming>Flow_SolicitarCambios</bpmn:incoming>
+      <bpmn:outgoing>Flow_BackRevision</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Rechazado" name="Publicación rechazada">
+      <bpmn:incoming>Flow_Rechazar</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_Publicar" name="Publicar (servicio)" camunda:type="external">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateThrowEvent id="Event_PublicationPublished" name="publication.published">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+      <bpmn:messageEventDefinition />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:serviceTask id="Task_Notificar" name="Enviar notificaciones (servicio)" camunda:type="external">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Publicado" name="Publicación visible en catálogo">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Publicacion" targetRef="Task_Edicion" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Edicion" targetRef="Task_EnviarRevision" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_EnviarRevision" targetRef="Event_PublicationSubmitted" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Event_PublicationSubmitted" targetRef="Task_AsignarRevisores" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_AsignarRevisores" targetRef="Event_ReviewRequested" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Event_ReviewRequested" targetRef="Task_Revision" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_Revision" targetRef="Gateway_Decision" />
+    <bpmn:sequenceFlow id="Flow_Aceptar" sourceRef="Gateway_Decision" targetRef="Task_AprobacionEditorial" />
+    <bpmn:sequenceFlow id="Flow_SolicitarCambios" sourceRef="Gateway_Decision" targetRef="Task_ActualizarContenido" />
+    <bpmn:sequenceFlow id="Flow_Rechazar" sourceRef="Gateway_Decision" targetRef="EndEvent_Rechazado" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_AprobacionEditorial" targetRef="Task_Publicar" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Publicar" targetRef="Event_PublicationPublished" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Event_PublicationPublished" targetRef="Task_Notificar" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Task_Notificar" targetRef="EndEvent_Publicado" />
+    <bpmn:sequenceFlow id="Flow_BackRevision" sourceRef="Task_ActualizarContenido" targetRef="Task_Revision" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Publicacion">
+    <bpmndi:BPMNPlane id="BPMNPlane_Publicacion" bpmnElement="Proceso_Publicacion">
+      <bpmndi:BPMNShape id="LaneShape_Autor" bpmnElement="Lane_Autor" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1820" height="440" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_StartEvent" bpmnElement="StartEvent_Publicacion">
+        <dc:Bounds x="250" y="130" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="238" y="166" width="61" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_TaskEdicion" bpmnElement="Task_Edicion">
+        <dc:Bounds x="330" y="110" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_TaskEnviar" bpmnElement="Task_EnviarRevision">
+        <dc:Bounds x="500" y="110" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EventSubmitted" bpmnElement="Event_PublicationSubmitted">
+        <dc:Bounds x="680" y="130" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="655" y="166" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_TaskAsignar" bpmnElement="Task_AsignarRevisores">
+        <dc:Bounds x="770" y="110" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EventReviewRequested" bpmnElement="Event_ReviewRequested">
+        <dc:Bounds x="940" y="130" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="918" y="176" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_TaskRevision" bpmnElement="Task_Revision">
+        <dc:Bounds x="1030" y="110" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_GatewayDecision" bpmnElement="Gateway_Decision" isMarkerVisible="true">
+        <dc:Bounds x="1210" y="120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1204" y="82.5" width="61" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_TaskAprobacion" bpmnElement="Task_AprobacionEditorial">
+        <dc:Bounds x="1310" y="90" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_TaskPublicar" bpmnElement="Task_Publicar">
+        <dc:Bounds x="1490" y="90" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EventPublished" bpmnElement="Event_PublicationPublished">
+        <dc:Bounds x="1650" y="130" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1628" y="166" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_TaskNotificar" bpmnElement="Task_Notificar">
+        <dc:Bounds x="1710" y="90" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndPublicado" bpmnElement="EndEvent_Publicado">
+        <dc:Bounds x="1890" y="130" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1863" y="176" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_TaskActualizar" bpmnElement="Task_ActualizarContenido">
+        <dc:Bounds x="870" y="340" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndRechazado" bpmnElement="EndEvent_Rechazado">
+        <dc:Bounds x="1372" y="322" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1361" y="366" width="57" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Flow1" bpmnElement="Flow_1">
+        <di:waypoint x="286" y="151" />
+        <di:waypoint x="330" y="153" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow2" bpmnElement="Flow_2">
+        <di:waypoint x="470" y="150" />
+        <di:waypoint x="500" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow3" bpmnElement="Flow_3">
+        <di:waypoint x="640" y="150" />
+        <di:waypoint x="680" y="148" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow4" bpmnElement="Flow_4">
+        <di:waypoint x="716" y="148" />
+        <di:waypoint x="770" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow5" bpmnElement="Flow_5">
+        <di:waypoint x="910" y="148" />
+        <di:waypoint x="940" y="148" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow6" bpmnElement="Flow_6">
+        <di:waypoint x="976" y="148" />
+        <di:waypoint x="1030" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow7" bpmnElement="Flow_7">
+        <di:waypoint x="1190" y="150" />
+        <di:waypoint x="1210" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_FlowAceptar" bpmnElement="Flow_Aceptar">
+        <di:waypoint x="1260" y="145" />
+        <di:waypoint x="1285" y="145" />
+        <di:waypoint x="1285" y="114" />
+        <di:waypoint x="1310" y="114" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_FlowSolicitarCambios" bpmnElement="Flow_SolicitarCambios">
+        <di:waypoint x="1234" y="169" />
+        <di:waypoint x="1210" y="169" />
+        <di:waypoint x="1210" y="380" />
+        <di:waypoint x="1030" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_FlowRechazar" bpmnElement="Flow_Rechazar">
+        <di:waypoint x="1232" y="167" />
+        <di:waypoint x="1232" y="246" />
+        <di:waypoint x="1390" y="246" />
+        <di:waypoint x="1390" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow8" bpmnElement="Flow_8">
+        <di:waypoint x="1470" y="130" />
+        <di:waypoint x="1490" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow9" bpmnElement="Flow_9">
+        <di:waypoint x="1610" y="130" />
+        <di:waypoint x="1650" y="148" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow10" bpmnElement="Flow_10">
+        <di:waypoint x="1686" y="148" />
+        <di:waypoint x="1710" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Flow11" bpmnElement="Flow_11">
+        <di:waypoint x="1850" y="130" />
+        <di:waypoint x="1890" y="148" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_FlowBackRevision" bpmnElement="Flow_BackRevision">
+        <di:waypoint x="950" y="340" />
+        <di:waypoint x="950" y="245" />
+        <di:waypoint x="1110" y="245" />
+        <di:waypoint x="1110" y="190" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
